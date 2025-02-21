@@ -1,4 +1,4 @@
-const testData1 = {
+window.testData = {
     onegin: {
         questions: [
             {
