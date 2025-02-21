@@ -1,39 +1,38 @@
-// Элементы DOM для работы с интерфейсом
-const quizContainer = document.getElementById('quiz-container'); // Контейнер теста
-let storyTitle = document.getElementById('story-title'); // Заголовок истории
-let questionText = document.getElementById('question-text'); // Текст вопроса
-let optionsContainer = document.getElementById('options-container'); // Контейнер вариантов ответа
-let timerDiv = document.getElementById('timer'); // Отображение таймера
-const storyButtons = document.querySelectorAll('.sidebar button'); // Кнопки выбора теста
-const sidebar = document.querySelector('.sidebar'); // Сайдбар
+const quizContainer = document.getElementById('quiz-container');
+let storyTitle = document.getElementById('story-title');
+let questionText = document.getElementById('question-text');
+let optionsContainer = document.getElementById('options-container');
+let timerDiv = document.getElementById('timer');
+const storyButtons = document.querySelectorAll('.sidebar button');
+const sidebar = document.getElementById('sidebar');
+const variantContainer = document.getElementById('variant-container');
+const variantButtons = document.querySelectorAll('.variant-container button');
 
-// Глобальные переменные состояния теста
-let currentStory = null; // Текущая история
-let currentQuestionIndex = 0; // Индекс текущего вопроса
-let correctAnswers = 0; // Количество правильных ответов
-let timer = null; // ID таймера
-let totalQuestions = 0; // Общее количество вопросов
-let isQuizActive = false; // Флаг активности теста
+let currentStory = null;
+let currentQuestionIndex = 0;
+let correctAnswers = 0;
+let timer = null;
+let totalQuestions = 0;
+let isQuizActive = false;
+let testData = null;
 
-// Функция запуска таймера
 function startTimer(duration) {
-    let timeLeft = duration; // Устанавливаем начальное время
-    timerDiv.textContent = `Время: ${timeLeft} секунд`; // Показываем время
+    let timeLeft = duration;
+    timerDiv.textContent = `Время: ${timeLeft} секунд`;
 
-    if (timer) clearInterval(timer); // Очищаем существующий таймер
+    if (timer) clearInterval(timer);
 
-    timer = setInterval(() => { // Запускаем таймер
+    timer = setInterval(() => {
         timeLeft--;
         timerDiv.textContent = `Время: ${timeLeft} секунд`;
-        if (timeLeft <= 0) { // Если время вышло
+        if (timeLeft <= 0) {
             clearInterval(timer);
-            markUnanswered(); // Помечаем как неотвеченный
-            setTimeout(showNextQuestion, 2000); // Переход к следующему вопросу
+            markUnanswered();
+            setTimeout(showNextQuestion, 2000);
         }
     }, 1000);
 }
 
-// Помечаем неотвеченный вопрос
 function markUnanswered() {
     const storyData = testData[currentStory];
     const correctAnswer = storyData.questions[currentQuestionIndex].correct;
@@ -44,15 +43,14 @@ function markUnanswered() {
     });
 }
 
-// Загрузка вопроса
 function loadQuestion() {
     const storyData = testData[currentStory];
     const questionData = storyData.questions[currentQuestionIndex];
 
     questionText.textContent = `Вопрос ${currentQuestionIndex + 1} из ${totalQuestions}: ${questionData.question}`;
-    optionsContainer.innerHTML = ''; // Очищаем варианты
+    optionsContainer.innerHTML = '';
 
-    questionData.options.forEach((option, index) => { // Создаем варианты ответа
+    questionData.options.forEach((option, index) => {
         const optionElement = document.createElement('label');
         optionElement.className = 'option';
         optionElement.innerHTML = `<input type="radio" name="option" value="${index}"> ${option}`;
@@ -60,17 +58,16 @@ function loadQuestion() {
         optionsContainer.appendChild(optionElement);
     });
 
-    startTimer(30); // Запускаем таймер на 30 секунд
+    startTimer(30);
 }
 
-// Проверка выбранного ответа
 function checkAnswer(selectedIndex) {
-    clearInterval(timer); // Останавливаем таймер
+    clearInterval(timer);
     const storyData = testData[currentStory];
     const correctAnswer = storyData.questions[currentQuestionIndex].correct;
 
     optionsContainer.querySelectorAll('input[type="radio"]').forEach(input => {
-        input.disabled = true; // Отключаем выбор
+        input.disabled = true;
     });
 
     optionsContainer.childNodes.forEach((option, index) => {
@@ -78,12 +75,11 @@ function checkAnswer(selectedIndex) {
         if (index === selectedIndex && selectedIndex !== correctAnswer) option.classList.add('incorrect');
     });
 
-    if (selectedIndex === correctAnswer) correctAnswers++; // Увеличиваем счетчик
+    if (selectedIndex === correctAnswer) correctAnswers++;
 
-    setTimeout(showNextQuestion, 1500); // Переход к следующему
+    setTimeout(showNextQuestion, 1500);
 }
 
-// Переход к следующему вопросу
 function showNextQuestion() {
     clearInterval(timer);
     currentQuestionIndex++;
@@ -95,14 +91,12 @@ function showNextQuestion() {
     }
 }
 
-// Показ результатов
 function showResults() {
     const score = Math.round((correctAnswers / totalQuestions) * 100);
 
-    // Сохраняем завершение теста
     localStorage.setItem(`quiz_${currentStory}_completed`, 'true');
     localStorage.removeItem(`quiz_${currentStory}_started`);
-    isQuizActive = false; // Тест завершен, сбрасываем флаг
+    isQuizActive = false;
 
     const resultsHTML = `
         <div class="story-header" id="story-title">${testData[currentStory].title}</div>
@@ -120,13 +114,12 @@ function showResults() {
     quizContainer.innerHTML = resultsHTML;
 }
 
-// Сброс теста
 function resetQuiz() {
     currentStory = null;
     currentQuestionIndex = 0;
     correctAnswers = 0;
     totalQuestions = 0;
-    isQuizActive = false; // Сбрасываем флаг активности
+    isQuizActive = false;
 
     quizContainer.innerHTML = `
         <div class="story-header" id="story-title"></div>
@@ -143,12 +136,13 @@ function resetQuiz() {
     timerDiv = document.getElementById('timer');
 
     quizContainer.classList.add('hidden');
-    sidebar.classList.remove('hidden');
-    checkQuizAvailability(); // Проверяем доступность
+    sidebar.classList.add('hidden');
+    variantContainer.classList.remove('hidden');
+    checkQuizAvailability();
 }
 
-// Проверка доступности тестов
 function checkQuizAvailability() {
+    if (!testData) return;
     storyButtons.forEach(button => {
         const storyKey = button.getAttribute('data-story');
         const isCompleted = localStorage.getItem(`quiz_${storyKey}_completed`);
@@ -156,20 +150,19 @@ function checkQuizAvailability() {
 
         if (isCompleted === 'true' || isStarted === 'true') {
             button.disabled = true;
-            button.textContent = `${testData[storyKey].title} (Недоступно)`;
+            button.textContent = testData[storyKey] ? `${testData[storyKey].title} (Недоступно)` : `${storyKey} (Недоступно)`;
             button.style.opacity = '0.5';
             button.style.cursor = 'not-allowed';
         }
     });
 }
 
-// Блокировка теста при уходе со страницы
 function blockQuiz() {
-    if (!isQuizActive || localStorage.getItem(`quiz_${currentStory}_completed`) === 'true') return; // Если тест не активен или завершен, ничего не делаем
+    if (!isQuizActive || localStorage.getItem(`quiz_${currentStory}_completed`) === 'true') return;
 
-    clearInterval(timer); // Останавливаем таймер
-    isQuizActive = false; // Отмечаем тест как неактивный
-    localStorage.setItem(`quiz_${currentStory}_started`, 'true'); // Фиксируем, что тест начат
+    clearInterval(timer);
+    isQuizActive = false;
+    localStorage.setItem(`quiz_${currentStory}_started`, 'true');
 
     quizContainer.innerHTML = `
         <div class="story-header" id="story-title">${testData[currentStory].title}</div>
@@ -185,7 +178,39 @@ function blockQuiz() {
     `;
 }
 
-// Инициализация кнопок
+function initializeVariantButtons() {
+    variantButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const variant = button.getAttribute('data-variant');
+            loadTestData(variant);
+        });
+    });
+}
+
+function loadTestData(variant) {
+    const existingScript = document.querySelector(`script[src="testData${variant}.js"]`);
+    if (existingScript) existingScript.remove();
+
+    const script = document.createElement('script');
+    script.src = `testData${variant}.js`;
+    script.onload = () => {
+        if (!window.testData) {
+            alert('Данные не найдены в testData' + variant + '.js');
+            return;
+        }
+        testData = window.testData;
+        console.log('Загружен testData для варианта ' + variant, testData); // Отладка
+        variantContainer.classList.add('hidden');
+        sidebar.classList.remove('hidden');
+        initializeStoryButtons();
+        checkQuizAvailability();
+    };
+    script.onerror = () => {
+        alert('Ошибка загрузки testData' + variant + '.js. Проверьте наличие файла и его содержимое.');
+    };
+    document.body.appendChild(script);
+}
+
 function initializeStoryButtons() {
     storyButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -193,53 +218,48 @@ function initializeStoryButtons() {
             const isCompleted = localStorage.getItem(`quiz_${storyKey}_completed`);
             const isStarted = localStorage.getItem(`quiz_${storyKey}_started`);
 
+            if (!testData) {
+                alert('Данные теста ещё не загружены. Попробуйте выбрать вариант заново.');
+                return;
+            }
+
+            if (!testData[storyKey]) {
+                alert('Данные для рассказа "' + storyKey + '" отсутствуют в выбранном варианте!');
+                return;
+            }
+
             if (isCompleted === 'true' || isStarted === 'true') {
                 alert('Этот тест уже был начат или завершен и теперь недоступен!');
                 return;
             }
 
             currentStory = storyKey;
+            totalQuestions = testData[currentStory].questions.length;
             currentQuestionIndex = 0;
             correctAnswers = 0;
-            totalQuestions = testData[currentStory].questions.length;
+            localStorage.setItem(`quiz_${currentStory}_started`, 'true');
+            isQuizActive = true;
 
-            localStorage.setItem(`quiz_${currentStory}_started`, 'true'); // Отмечаем начало
-            isQuizActive = true; // Устанавливаем флаг активности
-
+            sidebar.classList.add('hidden');
             quizContainer.classList.remove('hidden');
             storyTitle.textContent = testData[currentStory].title;
-            sidebar.classList.add('hidden');
             loadQuestion();
         });
     });
 }
 
-// Обработчик видимости страницы
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && isQuizActive) { // Если вкладка стала невидимой и тест активен
-        blockQuiz(); // Блокируем тест
+    if (document.visibilityState === 'hidden' && isQuizActive) {
+        blockQuiz();
     }
 });
 
-// Обработчик закрытия страницы
 window.addEventListener('beforeunload', () => {
     if (isQuizActive && localStorage.getItem(`quiz_${currentStory}_completed`) !== 'true') {
-        blockQuiz(); // Блокируем тест при закрытии
+        blockQuiz();
     }
 });
 
-// Инициализация при загрузке
 window.addEventListener('load', () => {
-    checkQuizAvailability();
-    initializeStoryButtons();
-
-    // Проверяем, был ли тест начат ранее
-    storyButtons.forEach(button => {
-        const storyKey = button.getAttribute('data-story');
-        if (localStorage.getItem(`quiz_${storyKey}_started`) === 'true' && 
-            localStorage.getItem(`quiz_${storyKey}_completed`) !== 'true') {
-            currentStory = storyKey;
-            blockQuiz(); // Блокируем, если тест был начат
-        }
-    });
+    initializeVariantButtons();
 });

@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тест по рассказам</title>
+    <title>Тесты по литературе</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <div class="sidebar">
+        <div class="variant-container" id="variant-container">
+            <h2>Выберите вариант теста</h2>
+            <button data-variant="1">Вариант 1</button>
+            <button data-variant="2">Вариант 2</button>
+            <button data-variant="3">Вариант 3</button>
+        </div>
+        
+        <div class="sidebar hidden" id="sidebar">
             <h3>Выберите рассказ</h3>
             <button data-story="onegin">Евгений Онегин</button>
             <button data-story="oblomov">Обломов</button>
@@ -37,7 +44,6 @@
         </div>
     </div>
 
-    <script src="testData.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
