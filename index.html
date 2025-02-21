@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест по рассказам</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h3>Выберите рассказ</h3>
+            <button data-story="onegin">Евгений Онегин</button>
+            <button data-story="oblomov">Обломов</button>
+            <button data-story="hero">Герой нашего времени</button>
+            <button data-story="bespridan">Бесприданница</button>
+            <button data-story="warimir">Война и мир</button>
+            <button data-story="oldsun">Старший сын</button>
+            <button data-story="donstory">Донские Рассказы</button>
+            <button data-story="dontihi">Тихий Дон</button>
+            <button data-story="blackman">Черный человек</button>
+            <button data-story="tvelv">Двенадцать</button>
+            <button data-story="requem">Реквием</button>
+            <button data-story="arbat">Дети Арбата</button>
+            <button data-story="sotnikov">Сотников</button>
+        </div>
+        
+        <div class="main">
+            <div class="quiz-container hidden" id="quiz-container">
+                <div class="story-header" id="story-title"></div>
+                <div class="question">
+                    <div class="question-text" id="question-text"></div>
+                    <div class="options" id="options-container"></div>
+                </div>
+                <div class="timer" id="timer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="testData.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
