@@ -15,15 +15,6 @@ let timer = null;
 let totalQuestions = 0;
 let isQuizActive = false;
 let testData = null;
-let currentQuestions = []; // Для хранения перемешанных вопросов
-
-// Функция для перемешивания массива
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
 
 function startTimer(duration) {
     let timeLeft = duration;
@@ -43,7 +34,8 @@ function startTimer(duration) {
 }
 
 function markUnanswered() {
-    const correctAnswer = currentQuestions[currentQuestionIndex].correct;
+    const storyData = testData[currentStory];
+    const correctAnswer = storyData.questions[currentQuestionIndex].correct;
 
     optionsContainer.childNodes.forEach((option, index) => {
         if (index === correctAnswer) option.classList.add('correct');
@@ -52,7 +44,8 @@ function markUnanswered() {
 }
 
 function loadQuestion() {
-    const questionData = currentQuestions[currentQuestionIndex];
+    const storyData = testData[currentStory];
+    const questionData = storyData.questions[currentQuestionIndex];
 
     questionText.textContent = `Вопрос ${currentQuestionIndex + 1} из ${totalQuestions}: ${questionData.question}`;
     optionsContainer.innerHTML = '';
@@ -70,7 +63,8 @@ function loadQuestion() {
 
 function checkAnswer(selectedIndex) {
     clearInterval(timer);
-    const correctAnswer = currentQuestions[currentQuestionIndex].correct;
+    const storyData = testData[currentStory];
+    const correctAnswer = storyData.questions[currentQuestionIndex].correct;
 
     optionsContainer.querySelectorAll('input[type="radio"]').forEach(input => {
         input.disabled = true;
@@ -126,7 +120,6 @@ function resetQuiz() {
     correctAnswers = 0;
     totalQuestions = 0;
     isQuizActive = false;
-    currentQuestions = []; // Сброс перемешанных вопросов
 
     quizContainer.innerHTML = `
         <div class="story-header" id="story-title"></div>
@@ -206,7 +199,7 @@ function loadTestData(variant) {
             return;
         }
         testData = window.testData;
-        console.log('Загружен testData для варианта ' + variant, testData);
+        console.log('Загружен testData для варианта ' + variant, testData); // Отладка
         variantContainer.classList.add('hidden');
         sidebar.classList.remove('hidden');
         initializeStoryButtons();
@@ -241,26 +234,7 @@ function initializeStoryButtons() {
             }
 
             currentStory = storyKey;
-            const originalQuestions = testData[currentStory].questions;
-
-            // Перемешивание вопросов и вариантов
-            const shuffledQuestions = JSON.parse(JSON.stringify(originalQuestions));
-            shuffleArray(shuffledQuestions);
-
-            shuffledQuestions.forEach(question => {
-                const options = question.options;
-                const correctAnswer = question.correct;
-
-                const indexedOptions = options.map((option, index) => ({ option, originalIndex: index }));
-                shuffleArray(indexedOptions);
-
-                const newCorrect = indexedOptions.findIndex(item => item.originalIndex === correctAnswer);
-                question.correct = newCorrect;
-                question.options = indexedOptions.map(item => item.option);
-            });
-
-            currentQuestions = shuffledQuestions;
-            totalQuestions = currentQuestions.length;
+            totalQuestions = testData[currentStory].questions.length;
             currentQuestionIndex = 0;
             correctAnswers = 0;
             localStorage.setItem(`quiz_${currentStory}_started`, 'true');
@@ -288,4 +262,29 @@ window.addEventListener('beforeunload', () => {
 
 window.addEventListener('load', () => {
     initializeVariantButtons();
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === '5') {
+        // Очищаем localStorage для всех тестов
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('quiz_')) {
+                localStorage.removeItem(key);
+            }
+        });
+
+        // Обновляем состояние кнопок в сайдбаре
+        storyButtons.forEach(button => {
+            const storyKey = button.getAttribute('data-story');
+            if (testData && testData[storyKey]) {
+                button.disabled = false;
+                button.textContent = testData[storyKey].title;
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+            }
+        });
+
+        // Сбрасываем интерфейс к начальному состоянию
+        resetQuiz();
+    }
 });
